@@ -360,6 +360,16 @@ RCT_EXPORT_METHOD(setBadge: (NSInteger) number) {
         [RCTSharedApplication() setApplicationIconBadgeNumber:number];
     });
 }
+    
+RCT_EXPORT_METHOD(setCategories:(NSArray*) categories
+                       resolver:(RCTPromiseResolveBlock)resolve
+                       rejecter:(RCTPromiseRejectBlock)reject) {
+    if (@available(iOS 10.0, *)) {
+        NSSet *unCategories = [self buildUNNotificationCategories:categories];
+        [[UNUserNotificationCenter currentNotificationCenter] setNotificationCategories:unCategories];
+    }
+    resolve(nil);
+}
 
 // Because of the time delay between the app starting and the bridge being initialised
 // we create a temporary instance of RNFirebaseNotifications.
@@ -436,6 +446,43 @@ RCT_EXPORT_METHOD(setBadge: (NSInteger) number) {
     }
 
     return localNotification;
+}
+
+- (NSMutableSet*) buildUNNotificationCategories:(NSArray *) categories {
+    NSMutableSet *unCategories = [[NSMutableSet alloc] init];
+    
+    for (NSDictionary *category in categories) {
+        NSString *categoryId = category[@"categoryId"];
+        NSArray *intentIds = category[@"intentIds"];
+        NSMutableSet *unActions = [self buildUNNotificationActions:category[@"actions"]];
+        // TODO: Options
+        
+        UNNotificationCategory *unCategory;
+        if (category[@"hiddenPreviewsBodyPlaceholder"]) {
+            unCategory = [UNNotificationCategory categoryWithIdentifier:categoryId actions:unActions intentIdentifiers:intentIds hiddenPreviewsBodyPlaceholder:category[@"hiddenPreviewsBodyPlaceholder"] options:UNNotificationCategoryOptionNone];
+        } else {
+            unCategory = [UNNotificationCategory categoryWithIdentifier:categoryId actions:unActions intentIdentifiers:intentIds options:UNNotificationCategoryOptionNone];
+        }
+        
+        [unCategories addObject:unCategory];
+    }
+    
+    return unCategories;
+}
+
+- (NSMutableSet*) buildUNNotificationActions:(NSArray *) actions {
+    NSMutableSet *unActions = [[NSMutableSet alloc] init];
+    
+    for (NSDictionary *action in actions) {
+        NSString *actionId = action[@"actionId"];
+        NSString *title = action[@"title"];
+        // TODO: Options
+        
+        UNNotificationAction *unAction = [UNNotificationAction actionWithIdentifier:actionId title:title options:UNNotificationActionOptionNone];
+        [unActions addObject:unAction];
+    }
+    
+    return unActions;
 }
 
 - (UNNotificationRequest*) buildUNNotificationRequest:(NSDictionary *) notification

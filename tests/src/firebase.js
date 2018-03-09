@@ -37,6 +37,8 @@ const init = async () => {
       console.log('onNotificationDisplayed: ', notification);
     });
     // RNfirebase.instanceid().delete();
+
+    // Android channels
     const channel = new RNfirebase.notifications.Android.Channel(
       'test',
       'test',
@@ -44,28 +46,44 @@ const init = async () => {
     );
     channel.setDescription('test channel');
     RNfirebase.notifications().android.createChannel(channel);
+
+    // iOS categories
+    const iosAction = new RNfirebase.notifications.iOS.Action(
+      'test_action',
+      'My Test Action'
+    );
+    const iosCategory = new RNfirebase.notifications.iOS.Category(
+      'test_category',
+      []
+    );
+    iosCategory.addAction(iosAction);
+    await RNfirebase.notifications().ios.setCategories([iosCategory]);
+
+    // Notifications
     RNfirebase.notifications().cancelAllNotifications();
 
     const remoteInput = new RNfirebase.notifications.Android.RemoteInput(
       'inputText'
     );
     remoteInput.setLabel('Message');
-    const action = new RNfirebase.notifications.Android.Action(
+    const androidAction = new RNfirebase.notifications.Android.Action(
       'test_action',
       'ic_launcher',
       'My Test Action'
     );
-    action.addRemoteInput(remoteInput);
+    androidAction.addRemoteInput(remoteInput);
 
     const notification = new RNfirebase.notifications.Notification();
     notification
       .setTitle('Test title')
       .setBody('Test body')
       .setNotificationId('displayed')
-      .android.addAction(action)
+      .android.addAction(androidAction)
       .android.setChannelId('test')
       .android.setClickAction('action')
-      .android.setPriority(RNfirebase.notifications.Android.Priority.Max);
+      .android.setPriority(RNfirebase.notifications.Android.Priority.Max)
+      .ios.setCategory('test_category')
+      .ios.setHasAction(true);
 
     const date = new Date();
     date.setMinutes(date.getMinutes() + 1);
