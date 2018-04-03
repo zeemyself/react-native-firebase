@@ -13,7 +13,7 @@ target 'ReactNativeFirebaseDemo' do
   # Pods for ReactNativeFirebaseDemo
   pod 'React', :path => '../node_modules/react-native', :subspecs => [
    'Core',
-   'BatchedBridge',
+   'CxxBridge',
    'RCTText',
    'RCTNetwork',
    'RCTWebSocket',
@@ -26,6 +26,7 @@ target 'ReactNativeFirebaseDemo' do
   pod 'Firebase/Database'
   pod 'Firebase/DynamicLinks'
   pod 'Firebase/Firestore'
+  pod 'Firebase/Invites'
   pod 'Firebase/Messaging'
   pod 'Firebase/RemoteConfig'
   pod 'Firebase/Storage'

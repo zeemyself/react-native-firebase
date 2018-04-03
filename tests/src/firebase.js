@@ -4,17 +4,21 @@ import firebase from 'firebase';
 import RNfirebase from './../firebase';
 import DatabaseContents from './tests/support/DatabaseContents';
 
-// RNfirebase.database.enableLogging(true);
-// RNfirebase.firestore.enableLogging(true);
+// Verify logging works
+RNfirebase.database.enableLogging(true);
+RNfirebase.database.enableLogging(false);
+RNfirebase.firestore.enableLogging(true);
+RNfirebase.firestore.enableLogging(false);
 
 // RNfirebase.utils().logLevel = 'debug';
 // RNfirebase.utils().logLevel = 'info';
 RNfirebase.utils().logLevel = 'warn'; // default
 
-const init = async () => {
+// Messaging and Notifications testing
+const notifications = async () => {
   try {
     await RNfirebase.messaging().requestPermission();
-    const instanceid = await RNfirebase.instanceid().get();
+    const instanceid = await RNfirebase.iid().get();
     console.log('instanceid: ', instanceid);
     const token = await RNfirebase.messaging().getToken();
     console.log('token: ', token);
@@ -36,9 +40,7 @@ const init = async () => {
     RNfirebase.notifications().onNotificationDisplayed(notification => {
       console.log('onNotificationDisplayed: ', notification);
     });
-    // RNfirebase.instanceid().delete();
-
-    // Android channels
+    // RNfirebase.iid().delete();
     const channel = new RNfirebase.notifications.Android.Channel(
       'test',
       'test',
@@ -97,7 +99,9 @@ const init = async () => {
         .then(() => {
           RNfirebase.notifications()
             .getScheduledNotifications()
-            .then(notifications => console.log('scheduled: ', notifications));
+            .then(scheduledNotifications =>
+              console.log('scheduled: ', scheduledNotifications)
+            );
         });
     }, 5);
   } catch (error) {
@@ -105,7 +109,32 @@ const init = async () => {
   }
 };
 
-init();
+// notifications();
+
+// Invitations testing
+const invitations = async () => {
+  try {
+    const initialLink = await RNfirebase.links().getInitialLink();
+    console.log('initialLink: ', initialLink);
+    const initialInvite = await RNfirebase.invites().getInitialInvitation();
+    console.log('initialInvite: ', initialInvite);
+
+    RNfirebase.links().onLink(link => {
+      console.log('onLink: ', link);
+    });
+    RNfirebase.invites().onInvitation(invite => {
+      console.log('onInvitation: ', invite);
+    });
+    const invitation = new RNfirebase.invites.Invitation('Title', 'Message');
+    invitation.setDeepLink('https://je786.app.goo.gl/testing');
+    const invitationIds = await RNfirebase.invites().sendInvitation(invitation);
+    console.log('InvitationIds: ', invitationIds);
+  } catch (error) {
+    console.error('invitations init error:', error);
+  }
+};
+
+// invitations();
 
 const config = {
   apiKey: 'AIzaSyDnVqNhxU0Biit9nCo4RorAh5ulQQwko3E',
@@ -129,10 +158,10 @@ const android = {
 
 const ios = {
   clientId:
-    '305229645282-22imndi01abc2p6esgtu1i1m9mqrd0ib.apps.googleusercontent.com',
+    '305229645282-t29pn6o2t7se1f7rvrfsll4r0pvd6fb6.apps.googleusercontent.com',
   androidClientId: android.clientId,
-  appId: '1:305229645282:ios:7b45748cb1117d2d',
-  apiKey: 'AIzaSyDnVqNhxU0Biit9nCo4RorAh5ulQQwko3E',
+  appId: '1:305229645282:ios:d9ef660bd02cc2f1',
+  apiKey: 'AIzaSyAcdVLG5dRzA1ck_fa_xd4Z0cY7cga7S5A',
   databaseURL: 'https://rnfirebase-b9ad4.firebaseio.com',
   storageBucket: 'rnfirebase-b9ad4.appspot.com',
   messagingSenderId: '305229645282',
@@ -143,7 +172,7 @@ const instances = {
   web: firebase.initializeApp(config),
   native: RNfirebase,
   another: RNfirebase.initializeApp(
-    Platform.OS === 'ios' ? ios : android,
+    ios, // Platform.OS === 'ios' ? ios : android,
     'anotherApp'
   ),
 };
