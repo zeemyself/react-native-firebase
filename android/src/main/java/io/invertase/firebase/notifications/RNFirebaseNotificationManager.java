@@ -71,6 +71,12 @@ class RNFirebaseNotificationManager {
   }
 
   static Uri getSound(Context context, String sound) {
+    if(sound == "order") {
+      return Uri.parse("android.resource://" + context.getPackageName() + "/raw/order");
+    }
+    if(sound == "cancel") {
+      return Uri.parse("android.resource://" + context.getPackageName() + "/raw/cancel");
+    }
     if (sound == null) {
       return null;
     } else if (sound.contains("://")) {
